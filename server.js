@@ -48,35 +48,58 @@ app.get('/api/hello', function(req, res) {
 // Short URL Creation
 app.post("/api/shorturl", async (req, res) => {
   const url = req.body.url
+  const urlCode = shortId.generate()
 
-  const canResolve = hostname =>
-    new Promise(resolve => {
-      dns.lookup(hostname, err => { 
-      if (err && err.code === 'ENOTFOUND') {
-        resolve(false);
+  // verify a submitted URL
+  if (!validUrl.isWebUri(url)) {
+    res.status(401).send({
+      error: 'invalid URL'
+    })
+  } else {
+    try {
+      // check if url exists
+      const findOne = await URL.findOne({
+        original_url: url
+      })
+      if (findOne) {
+        res.json({
+          original_url: findOne.original_url,
+          short_url: findOne.short_url
+        })
       } else {
-        resolve(true);
+        // create new url record
+        findOne = new URL({
+          original_url: url,
+          short_url: urlCode
+        })
+        await findOne.save()
+        res.json({
+          original_url: findOne.original_url,
+          short_url: findOne.short_url
+        })
       }
-    });
-  })
-
-  const result = await canResolve(url);
-  console.log(result)
-
-  if(!result) return res.status(400).send({ error: 'invalid url' }); 
-
-  res.json({
-    original_url : url, 
-    short_url : 1
-  });
+    } catch (err) {
+      console.error(err)
+      res.status(500).json('oops something broke')
+    }
+  }
 });
 
-app.get("/api/shorturl/:id", (req, res) => {
-  const ipaddress = req.params.id
-  res.json({
-    original_url : 'https://freeCodeCamp.org', 
-    short_url : 1
-  });
+app.get("/api/shorturl/:url", async (req, res) => {
+  try {
+    const url = req.params.short_url
+    const foundUrl= await URL.findOne({
+      short_url: req.params.short_url
+    })
+    if (foundUrl) {
+      return res.redirect(urlParams.original_url)
+    } else {
+      return res.status(404).json('No URL found')
+    }
+  } catch (err) {
+    console.log(err)
+    res.status(500).json('oops something broke')
+  }
 });
 
 app.listen(port, function() {
