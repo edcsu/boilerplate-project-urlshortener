@@ -52,18 +52,20 @@ app.post("/api/shorturl", async (req, res) => {
 
   // verify a submitted URL
   if (!isUrlHttp(url)) {
+    console.log("bad url")
     return res.status(400)
     .json({
       error: 'invalid url'
     })
   } else {
+    console.log("processing finding url")
     try {
       // check if url exists
       let findUrl = await URL.findOne({
         original_url: url
       })
       if (findUrl) {
-        res.json({
+        return res.json({
           original_url: findUrl.original_url,
           short_url: findUrl.short_url
         })
@@ -74,14 +76,14 @@ app.post("/api/shorturl", async (req, res) => {
           short_url: urlCode
         })
         await findUrl.save()
-        res.json({
+        return res.json({
           original_url: findUrl.original_url,
           short_url: findUrl.short_url
         })
       }
     } catch (err) {
       console.error(err)
-      res.status(500).json('oops something broke')
+      return res.status(500).json('oops something broke')
     }
   }
 });
@@ -99,7 +101,7 @@ app.get("/api/shorturl/:url", async (req, res) => {
     }
   } catch (err) {
     console.log(err)
-    res.status(500).json('oops something broke')
+    return res.status(500).json('oops something broke')
   }
 });
 
