@@ -52,11 +52,8 @@ app.post("/api/shorturl", async (req, res) => {
 
   // verify a submitted URL
   if (!isUrlHttp(url)) {
-    console.log("bad url")
-    return res.status(400)
-    .json({
-      error: 'invalid url'
-    })
+    console.log("URL is a valid HTTP URL")
+    res.json({error: 'invalid url'})
   } else {
     console.log("processing finding url")
     try {
