@@ -9,7 +9,7 @@ const { Schema } = mongoose;
 
 const shortId = require('shortid');
 const bodyParser = require('body-parser');
-const validUrl = require('valid-url');
+const isUrlHttp = require('is-url-http')
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
@@ -51,9 +51,10 @@ app.post("/api/shorturl", async (req, res) => {
   const urlCode = shortId.generate()
 
   // verify a submitted URL
-  if (!validUrl.isWebUri(url)) {
-    res.status(401).send({
-      error: 'invalid URL'
+  if (!isUrlHttp(url)) {
+    return res.status(400)
+    .json({
+      error: 'invalid url'
     })
   } else {
     try {
@@ -89,10 +90,10 @@ app.get("/api/shorturl/:url", async (req, res) => {
   try {
     const url = req.params.short_url
     const foundUrl= await URL.findOne({
-      short_url: req.params.short_url
+      short_url: req.params.url
     })
     if (foundUrl) {
-      return res.redirect(urlParams.original_url)
+      return res.redirect(foundUrl.original_url)
     } else {
       return res.status(404).json('No URL found')
     }
