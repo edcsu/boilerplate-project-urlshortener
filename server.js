@@ -58,24 +58,24 @@ app.post("/api/shorturl", async (req, res) => {
   } else {
     try {
       // check if url exists
-      const findOne = await URL.findOne({
+      let findUrl = await URL.findOne({
         original_url: url
       })
-      if (findOne) {
+      if (findUrl) {
         res.json({
-          original_url: findOne.original_url,
-          short_url: findOne.short_url
+          original_url: findUrl.original_url,
+          short_url: findUrl.short_url
         })
       } else {
         // create new url record
-        findOne = new URL({
+        findUrl = new URL({
           original_url: url,
           short_url: urlCode
         })
-        await findOne.save()
+        await findUrl.save()
         res.json({
-          original_url: findOne.original_url,
-          short_url: findOne.short_url
+          original_url: findUrl.original_url,
+          short_url: findUrl.short_url
         })
       }
     } catch (err) {
